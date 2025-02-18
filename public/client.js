@@ -2,36 +2,19 @@ const captions = window.document.getElementById("captions");
 const answer = window.document.getElementById("answer");
 let totalTranscript = "";
 
-async function AskToAi(question) {
-  try {
-    const response = await fetch("http://localhost:3000/ask", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question }),
-    });
-
-    if (!response.ok) {
-      throw new Error("Erro ao Obter Resposta da IA");
-    }
-
-    const audioBlob = await response.blob();
-
-    // Criar um URL temporário para o Blob de áudio
-    const audioUrl = URL.createObjectURL(audioBlob);
-
-    // Definir o src do player de áudio
-    const audioPlayer = document.getElementById("audioPlayer");
-    audioPlayer.src = audioUrl;
-    audioPlayer.play();  // Reproduzir o áudio automaticamente
-
-    // Exibir a resposta em texto (opcional)
-    const respostaText = await response.text();
-    answer.innerHTML = `<span>${respostaText}</span>`;
-
-  } catch (error) {
-    console.error("Erro ao perguntar para a IA:", error);
-    answer.innerHTML = "<span>Erro ao processar a pergunta.</span>";
-  }
+function AskToAi(question) {
+  fetch("http://localhost:3000/ask", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question }),
+  })
+    .then((res) => res.blob()) // Converte a resposta em um Blob (arquivo de áudio)
+    .then((blob) => {
+      const audioURL = URL.createObjectURL(blob); // Cria uma URL temporária do áudio
+      const audioElement = new Audio(audioURL); // Cria um novo elemento de áudio
+      audioElement.play(); // Reproduz o áudio
+    })
+    .catch((err) => console.error("Erro ao reproduzir áudio:", err));
 }
 
 async function getMicrophone() {

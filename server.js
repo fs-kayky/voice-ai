@@ -105,29 +105,24 @@ app.post("/ask", async (req, res) => {
 
     // Generate content with the AI model
     const result = await model.generateContent(prompt);
-    const responseText = result.response; // Adjust this if the response structure is different
+    const responseText = await result.response; // Adjust this if the response structure is different
 
-    // Call clientE's text-to-speech conversion method
-    const audioStream = await clientE.textToSpeech.convert("XB0fDUnXU5powFXDhCwa", {
-      output_format: "mp3_44100_128",
-      text: responseText,
-      model_id: "eleven_multilingual_v2",
+    const audioBuffer = await clientE.textToSpeech.convert(
+      "XB0fDUnXU5powFXDhCwa",
+      {
+        output_format: "mp3_44100_128",
+        text: responseText.text(),
+        model_id: "eleven_multilingual_v2",
+      }
+    );
+
+    res.set({
+      "Content-Type": "audio/mpeg",
+      "Content-Disposition": "attachment; filename=audio.mp3",
     });
 
-    // Handle the audio stream
-    audioStream.on("data", (chunk) => {
-      res.write(chunk);  // Write the audio chunk to the response
-    });
-
-    audioStream.on("end", () => {
-      res.end();  // End the response once the stream is finished
-    });
-
-    audioStream.on("error", (err) => {
-      console.error("Error streaming audio:", err);
-      res.status(500).send("Erro ao processar áudio.");
-    });
-
+    res.send(audioBuffer);
+    
   } catch (error) {
     console.error("Error occurred:", error);
     res.status(500).send("ERRO AO BUSCAR RESPOSTA NO GPT-4!!");

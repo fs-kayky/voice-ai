@@ -112,3 +112,23 @@ body {
   color: white;
   background-color: rgba(0, 0, 0, 0.3);
 }
+
+.answer {
+  font: 3.2rem/1.25 Verdana, Geneva, Tahoma, sans-serif;
+  /* font-family: ; */
+  text-transform: uppercase;
+  text-align: center;
+  font-weight: 400;
+  position: absolute;
+  left: 50%;
+  top: 1rem;
+  transform: translate(-50%, 0);
+}
+
+.answer span {
+  display: inline-block;
+  line-height: 4rem;
+  padding: 1rem;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.3);
+}

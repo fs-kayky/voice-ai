@@ -1,6 +1,38 @@
 const captions = window.document.getElementById("captions");
-let totalTranscript = ""
+const answer = window.document.getElementById("answer");
+let totalTranscript = "";
 
+async function AskToAi(question) {
+  try {
+    const response = await fetch("http://localhost:3000/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Erro ao Obter Resposta da IA");
+    }
+
+    const audioBlob = await response.blob();
+
+    // Criar um URL temporário para o Blob de áudio
+    const audioUrl = URL.createObjectURL(audioBlob);
+
+    // Definir o src do player de áudio
+    const audioPlayer = document.getElementById("audioPlayer");
+    audioPlayer.src = audioUrl;
+    audioPlayer.play();  // Reproduzir o áudio automaticamente
+
+    // Exibir a resposta em texto (opcional)
+    const respostaText = await response.text();
+    answer.innerHTML = `<span>${respostaText}</span>`;
+
+  } catch (error) {
+    console.error("Erro ao perguntar para a IA:", error);
+    answer.innerHTML = "<span>Erro ao processar a pergunta.</span>";
+  }
+}
 
 async function getMicrophone() {
   const userMedia = await navigator.mediaDevices.getUserMedia({
@@ -11,7 +43,7 @@ async function getMicrophone() {
 }
 
 async function openMicrophone(microphone, socket) {
-  console.log(totalTranscript)
+  console.log(totalTranscript);
   await microphone.start(500);
 
   microphone.onstart = () => {
@@ -76,16 +108,20 @@ window.addEventListener("load", async () => {
   socket.on("open", async () => {
     console.log("client: connected to websocket");
 
-    socket.on("Results", (data) => {
+    socket.on("Results", async (data) => {
       console.log(data);
 
       const transcript = data.channel.alternatives[0].transcript;
-  
+
       totalTranscript += " " + transcript;
 
-
-      if (transcript !== "")
+      if (transcript !== "") {
         captions.innerHTML = transcript ? `<span>${transcript}</span>` : "";
+
+        const respostaIA = await AskToAi(transcript);
+
+        answer.innerHTML = respostaIA ? `<span>${respostaIA}</span>` : "";
+      }
     });
 
     socket.on("error", (e) => console.error(e));
